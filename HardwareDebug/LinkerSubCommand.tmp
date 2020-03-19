@@ -1,0 +1,13 @@
+-input=".\generate\dbsct.obj"
+-input=".\generate\hwsetup.obj"
+-input=".\generate\intprg.obj"
+-input=".\generate\resetprg.obj"
+-input=".\generate\sbrk.obj"
+-input=".\generate\vecttbl.obj"
+-input=".\src\VectorControlTest.obj"
+-input=".\src\cpwm.obj"
+-input=".\src\dacvtr.obj"
+-input=".\src\sensors.obj"
+-input=".\src\vecctrl.obj"
+-library=".\VectorControlTest.lib"
+-start=SU,SI,B_1,R_1,B_2,R_2,B,R/04,PResetPRG,C_1,C_2,C,C$*,D*,W*,L,PIntPRG,P/0FFFC0000,FIXEDVECT/0FFFFFF80

@@ -1,0 +1,17 @@
+-We=--template_info_file="C:\Users\kosuke\Develop\RX\VectorControlTest\HardwareDebug\src\tpldir\VectorControlTest.ti"
+-We=--ii_file="C:\Users\kosuke\Develop\RX\VectorControlTest\HardwareDebug\src\tpldir\VectorControlTest.ii"
+-We=--tentative_info_file="C:\Users\kosuke\Develop\RX\VectorControlTest\HardwareDebug\src\tpldir\VectorControlTest.td"
+
+-output=obj="C:\Users\kosuke\Develop\RX\VectorControlTest\HardwareDebug\src\VectorControlTest.obj"
+-isa=rxv1
+-fpu
+-endian=big
+-include=C:\Renesas\RX\3_1_0\include
+-include=C:\Users\kosuke\Develop\RX\VectorControlTest\generate
+-lang=cpp
+-utf8
+-nomessage
+-debug
+-outcode=utf8
+-nologo
+"../src/VectorControlTest.cpp"

@@ -1,0 +1,7 @@
+-isa=rxv1
+-fpu
+-endian=big
+-lang=c99
+-head=runtime,math,stdio,stdlib,string,new
+-output="VectorControlTest.lib"
+-nologo

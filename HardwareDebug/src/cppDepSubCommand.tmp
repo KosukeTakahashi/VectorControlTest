@@ -1,0 +1,13 @@
+-MM
+-MP
+-isa=rxv1
+-fpu
+-endian=big
+-include="C:\Renesas\RX\3_1_0\include"
+-include="C:\Users\kosuke\Develop\RX\VectorControlTest\generate" 
+-lang=cpp
+-utf8
+-nomessage
+-debug
+-outcode=utf8
+-nologo
