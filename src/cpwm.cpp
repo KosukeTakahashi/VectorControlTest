@@ -21,10 +21,10 @@ void CPWMWrapper::setup(void) {
     MTU.TSTRA.BYTE &= 0x07;
 
     // [2] カウンタクロック・カウンタクリア要因選択
-    MTU3.TCR.BIT.TPSC = 0; // ICLK/1 でカウント
+    MTU3.TCR.BIT.TPSC = 1; // ICLK/4 でカウント
     MTU3.TCR.BIT.CKEG = 0; // 立ち上がりエッジでカウント
     MTU3.TCR.BIT.CCLR = 0; // TCNT クリア禁止
-    MTU4.TCR.BIT.TPSC = 0; // ICLK/1 でカウント
+    MTU4.TCR.BIT.TPSC = 1; // ICLK/4 でカウント
     MTU4.TCR.BIT.CKEG = 0; // 立ち上がりエッジでカウント
     MTU4.TCR.BIT.CCLR = 0; // TCNT クリア禁止
 
@@ -86,7 +86,7 @@ void CPWMWrapper::stopOutput(void) {
     MTU.TSTRA.BYTE &= 0x07;
 }
 
-Result::Type CPWMWrapper::setTGR3D(float value) {
+Result::Type CPWMWrapper::setDutyU(float value) {
     value = value < 0.0 ? 0.0
                         : 1.0 < value ? 1.0
                                       : value;
@@ -98,19 +98,19 @@ Result::Type CPWMWrapper::setTGR3D(float value) {
     return Result::OK;
 }
 
-Result::Type CPWMWrapper::setTGR4B(float value) {
+Result::Type CPWMWrapper::setDutyV(float value) {
     value = value < 0.0 ? 0.0
                         : 1.0 < value ? 1.0
                                       : value;
 
     int range = this->carrierCycle / 2 - 2 * this->deadtime;
     int adjuster = this->deadtime;
-    MTU4.TGRB = value * range + adjuster;
+    MTU4.TGRC = value * range + adjuster;
 
     return Result::OK;
 }
 
-Result::Type CPWMWrapper::setTGR4D(float value) {
+Result::Type CPWMWrapper::setDutyW(float value) {
     value = value < 0.0 ? 0.0
                         : 1.0 < value ? 1.0
                                       : value;

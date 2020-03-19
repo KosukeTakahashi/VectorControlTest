@@ -55,15 +55,10 @@ Result::Type DACHandler::setup(void) {
     return Result::OK;
 }
 
-DACHandler* DACHandler::setData(DAChannel::Type ch, short data) {
+DACHandler* DACHandler::setData(DAChannel::Type ch, int data) {
     int dataIdx = static_cast<int>(ch);
 
-    if (data < 0)
-        this->data[dataIdx] = 0;
-    else if (4095 < data)
-        this->data[dataIdx] = 4095;
-    else
-        this->data[dataIdx] = data;
+    this->data[dataIdx] = data & 0x0FFF;
 
     return this;
 }

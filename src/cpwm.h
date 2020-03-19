@@ -27,9 +27,9 @@ public:
     void setup(void);
     void startOutput(void);
     void stopOutput(void);
-    Result::Type setTGR3D(float value);
-    Result::Type setTGR4B(float value);
-    Result::Type setTGR4D(float value);
+    Result::Type setDutyU(float value);
+    Result::Type setDutyV(float value);
+    Result::Type setDutyW(float value);
 };
 
 }

@@ -9,3 +9,5 @@ src/VectorControlTest.obj\ src/VectorControlTest.d: ../src/vecctrl.h
 ../src/vecctrl.h:
 src/VectorControlTest.obj\ src/VectorControlTest.d: ../src/dacvtr.h
 ../src/dacvtr.h:
+src/VectorControlTest.obj\ src/VectorControlTest.d: C:\Renesas\RX\3_1_0\include\math.h
+C:\Renesas\RX\3_1_0\include\math.h:

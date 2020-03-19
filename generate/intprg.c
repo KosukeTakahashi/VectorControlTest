@@ -146,7 +146,7 @@ void Excep_S12AD0_S12ADI0(void){ }
 void Excep_CMPB_CMPI(void){ }
 
 // MTU0 TGIA0
-void Excep_MTU0_TGIA0(void){ }
+//void Excep_MTU0_TGIA0(void){ }
 
 // MTU0 TGIB0
 void Excep_MTU0_TGIB0(void){ }

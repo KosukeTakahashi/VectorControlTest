@@ -14,6 +14,7 @@
 #include "sensors.h"
 #include "vecctrl.h"
 #include "dacvtr.h"
+#include "math.h"
 
 //#include "typedefine.h"
 #ifdef __cplusplus
@@ -38,7 +39,8 @@ int globalCounter = 0;
 void main(void)
 {
     MSTP(MTU) = 0;
-    MSTP(S12AD) = 0;
+    MSTP(S12AD0) = 0;
+    MSTP(S12AD1) = 0;
 
     IEN(S12AD1, S12ADI1) = 1;
     IPR(S12AD1, S12ADI1) = 3;
@@ -53,42 +55,51 @@ void main(void)
 
     // MTU0 setup
     MTU.TSTRA.BIT.CST0 = 0;
-    MTU0.TCR.BIT.TPSC = 1; // ICLK / 4
+    MTU0.TCR.BIT.TPSC = 2; // ICLK / 16
     MTU0.TCR.BIT.CCLR = 1; // TGRAとのコンペアマッチでカウンタクリア
     MTU0.TCR.BIT.CKEG = 0; // 立ち上がりエッジでカウント
     MTU0.TIORH.BYTE = 0;   // TGRA, TGRBのコンペアマッチで出力禁止
     MTU0.TIORL.BYTE = 0;   // TGRB, TGRDのコンペアマッチで出力禁止
     MTU0.TIER.BIT.TTGE = 1; // Allow MTU0 AD conversion start request
-    MTU0.TGRA = 2000;
+    MTU0.TGRA = 625;       // control freq = 5.0 [KHz]
 
-//    MTU.TCSYSTR.BYTE = 0x98; // MTU Ch.0,3,4同期スタート
-//    MTU.TSTRA.BIT.CST0 = 1;
-    MTU.TSTRA.BYTE = 0xC0;
+    MTU.TCSYSTR.BYTE = 0x98; // MTU Ch.0,3,4同期スタート
 
-//    dachandler->setData(DAConverter::DAChannel::CH_0, 0)
-//              ->setData(DAConverter::DAChannel::CH_1, 512)
-//              ->setData(DAConverter::DAChannel::CH_2, 1024)
-//              ->setData(DAConverter::DAChannel::CH_3, 4096)
-//              ->commit();
+    dachandler->setData(DAConverter::DAChannel::CH_0, 0)
+              ->setData(DAConverter::DAChannel::CH_1, 0)
+              ->setData(DAConverter::DAChannel::CH_2, 4096)
+              ->setData(DAConverter::DAChannel::CH_3, 0)
+              ->commit();
 
-    int counter = 0;
     while (1) {
-        if (++counter == 80000)
-            counter = 0;
-
-        dachandler->setData(DAConverter::DAChannel::CH_0, counter * 4096 / 80000)
-                  ->setData(DAConverter::DAChannel::CH_2, MTU4.TCNT * 4096 / 65536)
-                  ->commit();
     }
 }
 
-#pragma interrupt int_s12adi1(vect=VECT(S12AD1, S12ADI1))
+#pragma interrupt int_s12adi1 (vect=VECT(S12AD1, S12ADI1))
 void int_s12adi1(void) {
-//    if (++globalCounter == 80000)
-//        globalCounter = 0;
-//    dachandler->setData(DAConverter::DAChannel::CH_1, globalCounter * 4096 / 80000)
-//              ->commit();
+    MTU0.TSR.BIT.TGFA = 0;
+    int res = sensors->readResolver();
+    dachandler->setData(DAConverter::DAChannel::CH_2, res * 4)
+              ->setData(DAConverter::DAChannel::CH_3, res == 1023 ? 4095 : 0)
+              ->setData(DAConverter::DAChannel::CH_0, PORTB.PORT.BIT.B1 ? 4095 : 0)
+              ->commit();
 
+//    const float twoPi = 6.28318530717;
+//    const float phi = 2.09439510239;
+
+//    if (globalCounter == 8000)
+//        globalCounter = 0;
+
+//    cpwm->setDutyU(sinf(twoPi * globalCounter / 8000.0f) / 2.0f + 0.5f);
+//    cpwm->setDutyV(sinf(phi + twoPi * globalCounter / 8000.0f) / 2.0f + 0.5f);
+//    cpwm->setDutyW(sinf((2 * phi) + twoPi * globalCounter / 8000.0f) / 2.0f + 0.5f);
+
+//    int accel = sensors->readAccel();
+//    dachandler->setData(DAConverter::DAChannel::CH_0, accel)
+//              ->commit();
+//    globalCounter += accel / 128;
+
+    /*
     const float twoPi = 6.28318530717;
 
     int iu_raw;
@@ -116,6 +127,7 @@ void int_s12adi1(void) {
     cpwm->setTGR3D(vu / 200);
     cpwm->setTGR4B(vv / 200);
     cpwm->setTGR4D(vw / 200);
+    */
 }
 
 #ifdef __cplusplus

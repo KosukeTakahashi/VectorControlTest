@@ -40,7 +40,7 @@ private:
 public:
     DACHandler(void);
     Result::Type setup(void);
-    DACHandler* setData(DAChannel::Type ch, short data);
+    DACHandler* setData(DAChannel::Type ch, int data);
     void commit(void);
 };
 

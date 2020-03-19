@@ -41,7 +41,7 @@ void SensorsWrapper::setup(void) {
     S12AD0.ADCER.BIT.ADIE2 = 0;     // グループ0・グループ1トリガそれぞれの変換終了時にS12ADIを発生（１サイクルスキャンモードのため無視）
     S12AD0.ADCER.BIT.ADIEW = 0;     // ダブルトリガそれぞれの変換終了時にS12ADIを発生（１サイクルスキャンモードのため無視）
     S12AD0.ADCER.BIT.ADRFMT = 0;    // AD変換データを右詰めで格納
-    S12AD0.ADSTRGR.BIT.ADSTRS0 = 0; // MTU0.TCNTとMTU0.TGRAとのコンペアマッチでAD変換開始
+    S12AD0.ADSTRGR.BIT.ADSTRS0 = 1; // MTU0.TCNTとMTU0.TGRAとのコンペアマッチでAD変換開始
     S12AD.ADCMPMD0.WORD = 0x0000;   // コンパレータを使用しない
 
     // 12-bit ADC unit 1
@@ -67,14 +67,12 @@ void SensorsWrapper::setup(void) {
     S12AD1.ADCER.BIT.ADIE2 = 1;     // グループ0・グループ1トリガそれぞれの変換終了時にS12ADIを発生（１サイクルスキャンモードのため無視）
     S12AD1.ADCER.BIT.ADIEW = 1;     // ダブルトリガそれぞれの変換終了時にS12ADIを発生（１サイクルスキャンモードのため無視）
     S12AD1.ADCER.BIT.ADRFMT = 0;    // AD変換データを右詰めで格納
-//    S12AD1.ADSTRGR.BIT.ADSTRS0 = 9; // TRG4AN; MTU4.TCNTと MTU4.TADCORA とのコンペアマッチでAD変換開始
-//    S12AD1.ADSTRGR.BIT.ADSTRS0 = 5; // TRGA4N; MTU4.TCNTのアンダーフローでAD変換開始
-    S12AD1.ADSTRGR.BIT.ADSTRS1 = 1; // MTU0.TCNTとMTU0.TGRAとのコンペアマッチでAD変換開始
+    S12AD1.ADSTRGR.BIT.ADSTRS0 = 1; // MTU0.TCNTとMTU0.TGRAとのコンペアマッチでAD変換開始
     S12AD.ADCMPMD0.WORD = 0x0000;   // コンパレータを使用しない
 }
 
 int SensorsWrapper::readResolver(void) {
-    return ((PORTB.PORT.BYTE & 0x0F) << 5) + (PORTA.PORT.BYTE);
+    return ((PORTB.PORT.BYTE & 0x0F) << 6) | (PORTA.PORT.BYTE & 0x3F);
 }
 
 void SensorsWrapper::readCurrent(int *u, int *v, int *w) {
