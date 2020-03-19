@@ -64,8 +64,8 @@ void SensorsWrapper::setup(void) {
     S12AD1.ADCER.BIT.DIAGVAL = 2;   // VREFH0×1/2の電圧でADC自己診断を実施
     S12AD1.ADCER.BIT.DIAGLD = 0;    // ADC自己診断に用いる電圧値を自動的にローテーション
     S12AD1.ADCER.BIT.DIAGM = 1;     // ADCの自己診断を実施する
-    S12AD1.ADCER.BIT.ADIE2 = 0;     // グループ0・グループ1トリガそれぞれの変換終了時にS12ADIを発生（１サイクルスキャンモードのため無視）
-    S12AD1.ADCER.BIT.ADIEW = 0;     // ダブルトリガそれぞれの変換終了時にS12ADIを発生（１サイクルスキャンモードのため無視）
+    S12AD1.ADCER.BIT.ADIE2 = 1;     // グループ0・グループ1トリガそれぞれの変換終了時にS12ADIを発生（１サイクルスキャンモードのため無視）
+    S12AD1.ADCER.BIT.ADIEW = 1;     // ダブルトリガそれぞれの変換終了時にS12ADIを発生（１サイクルスキャンモードのため無視）
     S12AD1.ADCER.BIT.ADRFMT = 0;    // AD変換データを右詰めで格納
 //    S12AD1.ADSTRGR.BIT.ADSTRS0 = 9; // TRG4AN; MTU4.TCNTと MTU4.TADCORA とのコンペアマッチでAD変換開始
 //    S12AD1.ADSTRGR.BIT.ADSTRS0 = 5; // TRGA4N; MTU4.TCNTのアンダーフローでAD変換開始

@@ -13,6 +13,7 @@
 #include "cpwm.h"
 #include "sensors.h"
 #include "vecctrl.h"
+#include "dacvtr.h"
 
 //#include "typedefine.h"
 #ifdef __cplusplus
@@ -30,6 +31,9 @@ void abort(void);
 CPWM::CPWMWrapper *cpwm;
 Sensors::SensorsWrapper *sensors;
 VectorControl *vecCtrl;
+DAConverter::DACHandler *dachandler;
+
+int globalCounter = 0;
 
 void main(void)
 {
@@ -45,6 +49,7 @@ void main(void)
 
     cpwm->setup();
     sensors->setup();
+    dachandler->setup();
 
     // MTU0 setup
     MTU.TSTRA.BIT.CST0 = 0;
@@ -56,11 +61,34 @@ void main(void)
     MTU0.TIER.BIT.TTGE = 1; // Allow MTU0 AD conversion start request
     MTU0.TGRA = 2000;
 
-    MTU.TCSYSTR.BYTE = 0x98; // MTU Ch.0,3,4同期スタート
+//    MTU.TCSYSTR.BYTE = 0x98; // MTU Ch.0,3,4同期スタート
+//    MTU.TSTRA.BIT.CST0 = 1;
+    MTU.TSTRA.BYTE = 0xC0;
+
+//    dachandler->setData(DAConverter::DAChannel::CH_0, 0)
+//              ->setData(DAConverter::DAChannel::CH_1, 512)
+//              ->setData(DAConverter::DAChannel::CH_2, 1024)
+//              ->setData(DAConverter::DAChannel::CH_3, 4096)
+//              ->commit();
+
+    int counter = 0;
+    while (1) {
+        if (++counter == 80000)
+            counter = 0;
+
+        dachandler->setData(DAConverter::DAChannel::CH_0, counter * 4096 / 80000)
+                  ->setData(DAConverter::DAChannel::CH_2, MTU4.TCNT * 4096 / 65536)
+                  ->commit();
+    }
 }
 
 #pragma interrupt int_s12adi1(vect=VECT(S12AD1, S12ADI1))
 void int_s12adi1(void) {
+//    if (++globalCounter == 80000)
+//        globalCounter = 0;
+//    dachandler->setData(DAConverter::DAChannel::CH_1, globalCounter * 4096 / 80000)
+//              ->commit();
+
     const float twoPi = 6.28318530717;
 
     int iu_raw;

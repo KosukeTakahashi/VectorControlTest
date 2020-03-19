@@ -13,20 +13,20 @@ using namespace DAConverter;
 /*****************
  * Pin Selection *
  *****************/
-#define SSL0_DDR PORT3.DDR.BIT.B0
-#define SSL1_DDR PORT3.DDR.BIT.B1
-#define SSL2_DDR PORT3.DDR.BIT.B2
-#define SSL3_DDR PORT3.DDR.BIT.B3
-#define SCK_DDR  PORT2.DDR.BIT.B4
-#define SDI_DDR  PORT2.DDR.BIT.B3
-#define LDAC_DDR PORT2.DDR.BIT.B2
-#define SSL0 PORT3.DR.BIT.B0
-#define SSL1 PORT3.DR.BIT.B1
-#define SSL2 PORT3.DR.BIT.B2
-#define SSL3 PORT3.DR.BIT.B3
-#define SCK  PORT2.DR.BIT.B4
-#define SDI  PORT2.DR.BIT.B3
-#define LDAC PORT2.DR.BIT.B2
+#define SSL0_DDR PORTD.DDR.BIT.B6
+#define SSL1_DDR PORTD.DDR.BIT.B7
+#define SSL2_DDR PORTE.DDR.BIT.B0
+#define SSL3_DDR PORTE.DDR.BIT.B1
+#define SCK_DDR  PORTD.DDR.BIT.B0
+#define SDI_DDR  PORTD.DDR.BIT.B2
+#define LDAC_DDR PORTD.DDR.BIT.B1
+#define SSL0 PORTD.DR.BIT.B6
+#define SSL1 PORTD.DR.BIT.B7
+#define SSL2 PORTE.DR.BIT.B0
+#define SSL3 PORTE.DR.BIT.B1
+#define SCK  PORTD.DR.BIT.B0
+#define SDI  PORTD.DR.BIT.B2
+#define LDAC PORTD.DR.BIT.B1
 #define SSL(n) SSL#n
 
 DACHandler::DACHandler(void) {

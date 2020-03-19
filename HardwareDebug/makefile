@@ -79,6 +79,9 @@ VectorControlTest.abs
 LIBRARY_GENERATOR_OUTPUTTYPE_OUTPUTS += \
 VectorControlTest.lib
 
+CONVERTOR_OUTPUT_OUTPUTS += \
+VectorControlTest.mot
+
 OBJS := \
 $(COMPILER_OBJS) \
 $(INDIVIDUAL_COMPILER_OBJS) \
@@ -86,17 +89,26 @@ $(ASSEMBLER_OBJS) \
 $(CUSTOM_OBJS)
 
 # All Target
-all: $(LINKER_OUTPUT_OUTPUTS) VectorControlTest.x
+all: $(CONVERTOR_OUTPUT_OUTPUTS) VectorControlTest.x
 
 	@echo 'Build complete.'
 
+VectorControlTest.mot: $(LINKER_OUTPUT_OUTPUTS) 
+	@echo 'Invoking: Converter'
+	@echo 'Building target:'
+	@echo ConverterVectorControlTest.tmp=
+	@sed -e "s/^/    /" "ConverterVectorControlTest.tmp"
+	rlink   "VectorControlTest.abs" -subcommand="ConverterVectorControlTest.tmp"
+	@echo 'Finished building target:'
+	@echo.
+
+
 VectorControlTest.abs: $(OBJS)  $(ALL_ASMS) $(LIBRARY_GENERATOR_OUTPUTTYPE_OUTPUTS) 
 	@echo 'Invoking: Linker'
-	@echo 'Building target:'
 	@echo LinkerVectorControlTest.tmp=
 	@sed -e "s/^/    /" "LinkerVectorControlTest.tmp"
 	rlink -subcommand="LinkerVectorControlTest.tmp"
-	@echo 'Finished building target:'
+	@echo 'Finished building:'
 	@echo.
 
 
@@ -113,7 +125,7 @@ VectorControlTest.x: VectorControlTest.abs
 
 # Other Targets
 clean:
-	-$(RM) $(LINKER_OUTPUT_OUTPUTS) $(LIBRARY_GENERATOR_OUTPUTTYPE_OUTPUTS)
+	-$(RM) $(LINKER_OUTPUT_OUTPUTS) $(LIBRARY_GENERATOR_OUTPUTTYPE_OUTPUTS) $(CONVERTOR_OUTPUT_OUTPUTS)
 	-rm -rf src/*.obj src/*.d src/*.asm src/*.p src/*.pp src/*.src src/*.jmp src/*.lst src/*.prn src/*.i 
 	-rm -rf generate/*.obj generate/*.d generate/*.asm generate/*.p generate/*.pp generate/*.src generate/*.jmp generate/*.lst generate/*.prn generate/*.i 
 	@echo

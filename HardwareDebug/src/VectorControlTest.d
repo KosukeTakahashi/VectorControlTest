@@ -7,3 +7,5 @@ src/VectorControlTest.obj\ src/VectorControlTest.d: ../src/sensors.h
 ../src/sensors.h:
 src/VectorControlTest.obj\ src/VectorControlTest.d: ../src/vecctrl.h
 ../src/vecctrl.h:
+src/VectorControlTest.obj\ src/VectorControlTest.d: ../src/dacvtr.h
+../src/dacvtr.h:

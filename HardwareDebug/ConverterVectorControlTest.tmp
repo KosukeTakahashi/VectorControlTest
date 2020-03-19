@@ -1,0 +1,5 @@
+-form=stype
+-output="VectorControlTest.mot"
+-byte_count=10
+-nologo
+-nomessage
