@@ -8,6 +8,8 @@
 #ifndef VECCTRL_H_
 #define VECCTRL_H_
 
+#include "dacvtr.h"
+
 class VectorControl {
 private:
     float gainP;
@@ -17,14 +19,14 @@ private:
     float iw;
     float theta;
     float accel;
-    float integralDeltaId;
-    float integralDeltaIq;
+    float integralErrorId;
+    float integralErrorIq;
 public:
     VectorControl(float gainP, float gainI);
     VectorControl* setCurrent(float u, float v, float w);
     VectorControl* setRotationAngle(float rotAngleRad);
     VectorControl* setAccelVal(float accel);
-    void calculate(float *vu, float *vv, float *vw);
+    void calculate(float *vu, float *vv, float *vw, DAConverter::DACHandler *dachandler);
 };
 
 #endif /* VECCTRL_H_ */

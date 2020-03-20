@@ -21,10 +21,10 @@ void CPWMWrapper::setup(void) {
     MTU.TSTRA.BYTE &= 0x07;
 
     // [2] カウンタクロック・カウンタクリア要因選択
-    MTU3.TCR.BIT.TPSC = 1; // ICLK/4 でカウント
+    MTU3.TCR.BIT.TPSC = 0; // ICLK/1 でカウント
     MTU3.TCR.BIT.CKEG = 0; // 立ち上がりエッジでカウント
     MTU3.TCR.BIT.CCLR = 0; // TCNT クリア禁止
-    MTU4.TCR.BIT.TPSC = 1; // ICLK/4 でカウント
+    MTU4.TCR.BIT.TPSC = 0; // ICLK/1 でカウント
     MTU4.TCR.BIT.CKEG = 0; // 立ち上がりエッジでカウント
     MTU4.TCR.BIT.CCLR = 0; // TCNT クリア禁止
 

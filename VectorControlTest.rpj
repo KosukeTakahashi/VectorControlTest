@@ -6,8 +6,7 @@
   <Device>RX620</Device>
   <OperationTab>
     <Endian>RFLG_ENDIAN_LITTLE</Endian>
-    <ProgramFile>
-    </ProgramFile>
+    <ProgramFile>HardwareDebug\VectorControlTest.mot</ProgramFile>
   </OperationTab>
   <OperationSettingTab>
     <FillCode>False</FillCode>
@@ -56,7 +55,8 @@
   </DeviceOptionTab>
   <ConnectOptionTab>
     <Tool>COMMTYPE_COMPORT</Tool>
-    <ToolNum>COM3</ToolNum>
+    <ToolNum>
+    </ToolNum>
     <ToolPower>0</ToolPower>
     <ToolConnectMode>RFPSet</ToolConnectMode>
     <ToolConnectPinOut>0</ToolConnectPinOut>

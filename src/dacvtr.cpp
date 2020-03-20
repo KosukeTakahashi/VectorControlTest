@@ -58,7 +58,13 @@ Result::Type DACHandler::setup(void) {
 DACHandler* DACHandler::setData(DAChannel::Type ch, int data) {
     int dataIdx = static_cast<int>(ch);
 
-    this->data[dataIdx] = data & 0x0FFF;
+//    this->data[dataIdx] = data & 0x0FFF;
+    if (data < 0)
+        this->data[dataIdx] = 0;
+    else if (0x0FFF < data)
+        this->data[dataIdx] = 0x0FFF;
+    else
+        this->data[dataIdx] = data;
 
     return this;
 }

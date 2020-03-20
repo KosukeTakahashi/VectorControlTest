@@ -45,9 +45,9 @@ void main(void)
     IEN(S12AD1, S12ADI1) = 1;
     IPR(S12AD1, S12ADI1) = 3;
 
-    cpwm = new CPWM::CPWMWrapper(8000, 100);
+    cpwm = new CPWM::CPWMWrapper(5000, 80);
     sensors = new Sensors::SensorsWrapper();
-    vecCtrl = new VectorControl(0.80, 0.20);
+    vecCtrl = new VectorControl(15.0, 0.0);
 
     cpwm->setup();
     sensors->setup();
@@ -78,11 +78,96 @@ void main(void)
 #pragma interrupt int_s12adi1 (vect=VECT(S12AD1, S12ADI1))
 void int_s12adi1(void) {
     MTU0.TSR.BIT.TGFA = 0;
-    int res = sensors->readResolver();
-    dachandler->setData(DAConverter::DAChannel::CH_2, res * 4)
-              ->setData(DAConverter::DAChannel::CH_3, res == 1023 ? 4095 : 0)
-              ->setData(DAConverter::DAChannel::CH_0, PORTB.PORT.BIT.B1 ? 4095 : 0)
+
+//    int res = sensors->readResolver();
+//    dachandler->setData(DAConverter::DAChannel::CH_2, res * 4)
+//              ->setData(DAConverter::DAChannel::CH_3, res == 1023 ? 4095 : 0)
+//              ->setData(DAConverter::DAChannel::CH_0, PORTB.PORT.BIT.B1 ? 4095 : 0)
+//              ->commit();
+
+    /***************
+     * 強制回転磁界 *
+     ***************/
+    /*
+    const int threshold = 80000;
+    int accel = sensors->readAccel();
+    globalCounter += accel / 64;
+    if (threshold < globalCounter)
+        globalCounter = 0;
+
+    const float phi = 2.09439510239;
+    const float twoPi = 6.28318530718;
+    float theta = ((float)globalCounter) / ((float)threshold);
+    cpwm->setDutyU((sinf(theta * twoPi) + 1.0f) / 2.0f);
+    cpwm->setDutyV((sinf(theta * twoPi + phi) + 1.0f) / 2.0f);
+    cpwm->setDutyW((sinf(theta * twoPi - phi) + 1.0f) / 2.0f);
+    dachandler->setData(DAConverter::DAChannel::CH_0, (int)(theta * 4096))
               ->commit();
+              */
+
+    /*************
+     * 正弦波駆動 *
+     *************/
+    /*
+    const float phi = 2.09439510239;
+//    const float pi = 3.14159265359;
+    const float twoPi = 6.28318530718;
+    const float sqrt3_2 = 0.86602540378;
+
+    int accel = sensors->readAccel();
+    int resolver = sensors->readResolver();
+
+    resolver = 1023 - resolver;
+
+    resolver /= 4;
+    float theta = resolver * twoPi / 128.0;
+    theta += 530 * twoPi / 4096.0;
+
+    while (twoPi < theta)
+        theta -= twoPi;
+
+    float k = accel / 4096.0;
+//    float k = 1.0;
+    float dutyU = (sinf(theta) * k + 1.0) / 2.0;
+    float dutyV = (sinf(theta - phi) * k + 1.0) / 2.0;
+    float dutyW = (sinf(theta + phi) * k + 1.0) / 2.0;
+
+    cpwm->setDutyU(dutyU);
+    cpwm->setDutyV(dutyV);
+    cpwm->setDutyW(dutyW);
+
+    int iu;
+    int iv;
+    int iw;
+
+    sensors->readCurrent(&iu, &iv, &iw);
+
+    int a = (iv * sqrt3_2) - (iw * sqrt3_2);
+    int b = iu - (iv / 2.0) - (iw / 2.0);
+    int d = a * sinf(theta) + b * cosf(theta);
+    int q = a * cosf(theta) - b * sinf(theta);
+
+    dachandler->setData(DAConverter::DAChannel::CH_0, d * 50 + 2048)
+              ->setData(DAConverter::DAChannel::CH_1, q * 50 + 2048)
+              ->commit();
+    */
+
+    /*
+    float u = sinf(theta);
+    float v = sinf(theta - phi);
+    float w = sinf(theta + phi);
+    float a = (v * sqrt3_2) - (w * sqrt3_2);
+    float b = u - (v / 2.0) - (w / 2.0);
+    float d = a * sinf(theta) + b * cosf(theta);
+    float q = a * cosf(theta) - b * sinf(theta);
+    float t = atanf(a / b);
+
+    dachandler->setData(DAConverter::DAChannel::CH_0, (t + pi) / twoPi * 4095)
+              ->setData(DAConverter::DAChannel::CH_1, theta / twoPi * 4095)
+              ->setData(DAConverter::DAChannel::CH_2, q * 500 + 2048)
+              ->setData(DAConverter::DAChannel::CH_3, resolver * 8)
+              ->commit();
+              */
 
 //    const float twoPi = 6.28318530717;
 //    const float phi = 2.09439510239;
@@ -99,7 +184,6 @@ void int_s12adi1(void) {
 //              ->commit();
 //    globalCounter += accel / 128;
 
-    /*
     const float twoPi = 6.28318530717;
 
     int iu_raw;
@@ -109,25 +193,48 @@ void int_s12adi1(void) {
     int resolver_raw = sensors->readResolver();
     int accel_raw = sensors->readAccel();
 
-    float iu = (iu_raw - 2048) * 300.0f / 1229.0f;
-    float iv = (iv_raw - 2048) * 300.0f / 1229.0f;
-    float iw = (iw_raw - 2048) * 300.0f / 1229.0f;
-    float resolver = resolver_raw * twoPi / 1024.0f;
-    float accel = accel_raw / 4096.0f;
+    /*
+    resolver_raw -= 70;
+
+    while (resolver_raw < 0)
+        resolver_raw += 1024;
+    */
+
+    resolver_raw = 1023 - resolver_raw;
+//    resolver_raw /= 4;
+
+    float iu = (iu_raw - 2048) * 75.0 / 307.0;
+    float iv = (iv_raw - 2048) * 75.0 / 307.0;
+    float iw = (iw_raw - 2048) * 75.0 / 307.0;
+    float theta = resolver_raw * twoPi / 512.0;
+    float accel = accel_raw / 4096.0;
 
     float vu;
     float vv;
     float vw;
 
-    vecCtrl->setCurrent(iu, iv, iw)
-           ->setRotationAngle(resolver)
-           ->setAccelVal(accel)
-           ->calculate(&vu, &vv, &vw);
+    theta += 530 * twoPi / 4096.0;
+    while (twoPi < theta)
+        theta -= twoPi;
 
-    cpwm->setTGR3D(vu / 200);
-    cpwm->setTGR4B(vv / 200);
-    cpwm->setTGR4D(vw / 200);
-    */
+    vecCtrl->setCurrent(iu, iv, iw)
+           ->setRotationAngle(theta)
+           ->setAccelVal(accel)
+           ->calculate(&vu, &vv, &vw, dachandler);
+
+    cpwm->setDutyU(vu / 10.0);
+    cpwm->setDutyV(vv / 10.0);
+    cpwm->setDutyW(vw / 10.0);
+
+//    dachandler->setData(DAConverter::DAChannel::CH_0, vu / 1 + 2048)
+//              ->setData(DAConverter::DAChannel::CH_1, vv / 1 + 2048)
+//              ->setData(DAConverter::DAChannel::CH_2, vw / 1 + 2048)
+//              ->commit();
+
+//    dachandler->setData(DAConverter::DAChannel::CH_0, iu * 400)
+//              ->setData(DAConverter::DAChannel::CH_1, iv * 400)
+//              ->setData(DAConverter::DAChannel::CH_2, iw * 400)
+//              ->commit();
 }
 
 #ifdef __cplusplus
