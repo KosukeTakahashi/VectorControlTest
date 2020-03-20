@@ -66,7 +66,7 @@ void CPWMWrapper::setup(void) {
     // [10] 相補PWMモード設定
     MTU3.TMDR1.BIT.BFA = 1;
     MTU3.TMDR1.BIT.BFB = 1;
-    MTU3.TMDR1.BIT.MD = 0xD;
+    MTU3.TMDR1.BIT.MD = 0xF;
 
     // [11] ダブルバッファ機能設定
     // 設定無し
@@ -87,37 +87,43 @@ void CPWMWrapper::stopOutput(void) {
 }
 
 Result::Type CPWMWrapper::setDutyU(float value) {
-    value = value < 0.0 ? 0.0
-                        : 1.0 < value ? 1.0
-                                      : value;
+    value = value < -1.0 ? -1.0
+                         : 1.0 < value ? 1.0
+                                       : value;
+    value /= 2.0;
+    value += 0.5;
 
-    int range = this->carrierCycle / 2 - 2 * this->deadtime;
-    int adjuster = this->deadtime;
-    MTU3.TGRD = range * value + adjuster;
+    int margin = this->deadtime;
+    int range = (this->carrierCycle / 2) - (2 * margin);
+    MTU3.TGRD = range * value + margin;
 
     return Result::OK;
 }
 
 Result::Type CPWMWrapper::setDutyV(float value) {
-    value = value < 0.0 ? 0.0
-                        : 1.0 < value ? 1.0
-                                      : value;
+    value = value < -1.0 ? -1.0
+                         : 1.0 < value ? 1.0
+                                       : value;
+    value /= 2.0;
+    value += 0.5;
 
-    int range = this->carrierCycle / 2 - 2 * this->deadtime;
-    int adjuster = this->deadtime;
-    MTU4.TGRC = value * range + adjuster;
+    int margin = this->deadtime;
+    int range = (this->carrierCycle / 2) - (2 * margin);
+    MTU4.TGRC = value * range + margin;
 
     return Result::OK;
 }
 
 Result::Type CPWMWrapper::setDutyW(float value) {
-    value = value < 0.0 ? 0.0
-                        : 1.0 < value ? 1.0
-                                      : value;
+    value = value < -1.0 ? -1.0
+                         : 1.0 < value ? 1.0
+                                       : value;
+    value /= 2.0;
+    value += 0.5;
 
-    int range = this->carrierCycle / 2 - 2 * this->deadtime;
-    int adjuster = this->deadtime;
-    MTU4.TGRD = value * range + adjuster;
+    int margin = this->deadtime;
+    int range = (this->carrierCycle / 2) - (2 * margin);
+    MTU4.TGRD = value * range + margin;
 
     return Result::OK;
 }

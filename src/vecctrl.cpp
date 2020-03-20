@@ -57,8 +57,10 @@ void VectorControl::calculate(float *vu, float *vv, float *vw, DAConverter::DACH
     this->integralErrorId += errorId;
     this->integralErrorIq += errorIq;
 
-    float vd = this->gainP * errorId + this->gainI * this->integralErrorId;
-    float vq = this->gainP * errorIq + this->gainI * this->integralErrorIq;
+//    float vd = this->gainP * errorId + this->gainI * this->integralErrorId;
+//    float vq = this->gainP * errorIq + this->gainI * this->integralErrorIq;
+    float vd = 0.0;
+    float vq = this->accel * 100.0;
 
     float va = vd * cosf(this->theta) - vq * sinf(this->theta);
     float vb = vd * sinf(this->theta) + vq * cosf(this->theta);
@@ -67,7 +69,7 @@ void VectorControl::calculate(float *vu, float *vv, float *vw, DAConverter::DACH
     *vv = (-va / 3.0) + (vb / sqrt3);
     *vw = (-va / 3.0) - (vb / sqrt3);
 
-    dachandler->setData(DAConverter::DAChannel::CH_0, id * 130)
-              ->setData(DAConverter::DAChannel::CH_1, iq * 130)
-              ->commit();
+//    dachandler->setData(DAConverter::DAChannel::CH_0, id * 130)
+//              ->setData(DAConverter::DAChannel::CH_1, iq * 130)
+//              ->commit();
 }

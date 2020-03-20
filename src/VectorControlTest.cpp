@@ -35,6 +35,9 @@ VectorControl *vecCtrl;
 DAConverter::DACHandler *dachandler;
 
 int globalCounter = 0;
+int initialIU = 0;
+int initialIV = 0;
+int initialIW = 0;
 
 void main(void)
 {
@@ -45,7 +48,7 @@ void main(void)
     IEN(S12AD1, S12ADI1) = 1;
     IPR(S12AD1, S12ADI1) = 3;
 
-    cpwm = new CPWM::CPWMWrapper(5000, 80);
+    cpwm = new CPWM::CPWMWrapper(5000, 100);
     sensors = new Sensors::SensorsWrapper();
     vecCtrl = new VectorControl(15.0, 0.0);
 
@@ -71,14 +74,31 @@ void main(void)
               ->setData(DAConverter::DAChannel::CH_3, 0)
               ->commit();
 
+    int tU = 0;
+    int tV = 0;
+    int tW = 0;
+
+    for (int i = 0; i < 1000; i++) {
+        sensors->readCurrent(&tU, &tV, &tW);
+        initialIU += tU;
+        initialIV += tV;
+        initialIW += tW;
+    }
+
+    initialIU /= 1000;
+    initialIV /= 1000;
+    initialIW /= 1000;
+
+    initialIU -= 2048;
+    initialIV -= 2048;
+    initialIW -= 2048;
+
     while (1) {
     }
 }
 
 #pragma interrupt int_s12adi1 (vect=VECT(S12AD1, S12ADI1))
 void int_s12adi1(void) {
-    MTU0.TSR.BIT.TGFA = 0;
-
 //    int res = sensors->readResolver();
 //    dachandler->setData(DAConverter::DAChannel::CH_2, res * 4)
 //              ->setData(DAConverter::DAChannel::CH_3, res == 1023 ? 4095 : 0)
@@ -108,10 +128,11 @@ void int_s12adi1(void) {
     /*************
      * 正弦波駆動 *
      *************/
-    /*
+
     const float phi = 2.09439510239;
 //    const float pi = 3.14159265359;
     const float twoPi = 6.28318530718;
+    const float sqrt3 = 1.73205080756;
     const float sqrt3_2 = 0.86602540378;
 
     int accel = sensors->readAccel();
@@ -121,36 +142,63 @@ void int_s12adi1(void) {
 
     resolver /= 4;
     float theta = resolver * twoPi / 128.0;
-    theta += 530 * twoPi / 4096.0;
+    theta += 550 * twoPi / 4096.0;
 
     while (twoPi < theta)
         theta -= twoPi;
 
-    float k = accel / 4096.0;
+//    float k = accel / 4096.0;
 //    float k = 1.0;
-    float dutyU = (sinf(theta) * k + 1.0) / 2.0;
-    float dutyV = (sinf(theta - phi) * k + 1.0) / 2.0;
-    float dutyW = (sinf(theta + phi) * k + 1.0) / 2.0;
+//    float dutyU = (sinf(theta) * k + 1.0) / 2.0;
+//    float dutyV = (sinf(theta - phi) * k + 1.0) / 2.0;
+//    float dutyW = (sinf(theta + phi) * k + 1.0) / 2.0;
 
-    cpwm->setDutyU(dutyU);
-    cpwm->setDutyV(dutyV);
-    cpwm->setDutyW(dutyW);
+//    cpwm->setDutyU(dutyU);
+//    cpwm->setDutyV(dutyV);
+//    cpwm->setDutyW(dutyW);
 
     int iu;
     int iv;
     int iw;
 
     sensors->readCurrent(&iu, &iv, &iw);
+    iu -= initialIU;
+    iv -= initialIV;
+    iw -= initialIW;
+    iu -= 2048;
+    iv -= 2048;
+    iw -= 2048;
 
-    int a = (iv * sqrt3_2) - (iw * sqrt3_2);
-    int b = iu - (iv / 2.0) - (iw / 2.0);
-    int d = a * sinf(theta) + b * cosf(theta);
-    int q = a * cosf(theta) - b * sinf(theta);
+    float a = iu - (iv / 2.0) - (iw / 2.0);
+    float b = (iv * sqrt3_2) - (iw * sqrt3_2);
+    float id = (a * cosf(theta)) + (b * sinf(theta));
+    float iq = (-a * sinf(theta)) + (b * cosf(theta));
+    float idRef = 0.0;
+    float iqRef = accel / 4096.0 * 100.0;
+    float errorId = idRef - id;
+    float errorIq = iqRef - iq;
 
-    dachandler->setData(DAConverter::DAChannel::CH_0, d * 50 + 2048)
-              ->setData(DAConverter::DAChannel::CH_1, q * 50 + 2048)
+//    float vd = 15.0 * errorId;
+//    float vq = 15.0 * errorIq;
+    float vd = 0.0;
+    float vq = accel / 4096.0 * 410.0;
+    float va = vd * cosf(theta) - vq * sinf(theta);
+    float vb = vd * sinf(theta) + vq * cosf(theta);
+    float vu = va * 2.0 / 3.0;
+    float vv = (-va / 3.0) + (vb / sqrt3);
+    float vw = (-va / 3.0) - (vb / sqrt3);
+
+    cpwm->setDutyU(vu / 410.0);
+    cpwm->setDutyV(vv / 410.0);
+    cpwm->setDutyW(vw / 410.0);
+//    cpwm->setDutyU(0.5);
+//    cpwm->setDutyV(0.75);
+//    cpwm->setDutyW(-0.5);
+
+    dachandler->setData(DAConverter::DAChannel::CH_0, MTU3.TGRB)
+              ->setData(DAConverter::DAChannel::CH_1, MTU4.TGRA)
+              ->setData(DAConverter::DAChannel::CH_2, MTU4.TGRB)
               ->commit();
-    */
 
     /*
     float u = sinf(theta);
@@ -167,7 +215,6 @@ void int_s12adi1(void) {
               ->setData(DAConverter::DAChannel::CH_2, q * 500 + 2048)
               ->setData(DAConverter::DAChannel::CH_3, resolver * 8)
               ->commit();
-              */
 
 //    const float twoPi = 6.28318530717;
 //    const float phi = 2.09439510239;
@@ -184,6 +231,7 @@ void int_s12adi1(void) {
 //              ->commit();
 //    globalCounter += accel / 128;
 
+    /*
     const float twoPi = 6.28318530717;
 
     int iu_raw;
@@ -193,20 +241,13 @@ void int_s12adi1(void) {
     int resolver_raw = sensors->readResolver();
     int accel_raw = sensors->readAccel();
 
-    /*
-    resolver_raw -= 70;
-
-    while (resolver_raw < 0)
-        resolver_raw += 1024;
-    */
-
     resolver_raw = 1023 - resolver_raw;
 //    resolver_raw /= 4;
 
     float iu = (iu_raw - 2048) * 75.0 / 307.0;
     float iv = (iv_raw - 2048) * 75.0 / 307.0;
     float iw = (iw_raw - 2048) * 75.0 / 307.0;
-    float theta = resolver_raw * twoPi / 512.0;
+    float theta = resolver_raw * twoPi / 512.0; // resolver = 1023 => theta = 4π
     float accel = accel_raw / 4096.0;
 
     float vu;
@@ -226,15 +267,18 @@ void int_s12adi1(void) {
     cpwm->setDutyV(vv / 10.0);
     cpwm->setDutyW(vw / 10.0);
 
-//    dachandler->setData(DAConverter::DAChannel::CH_0, vu / 1 + 2048)
-//              ->setData(DAConverter::DAChannel::CH_1, vv / 1 + 2048)
-//              ->setData(DAConverter::DAChannel::CH_2, vw / 1 + 2048)
-//              ->commit();
+    dachandler->setData(DAConverter::DAChannel::CH_0, vu / 1 + 2048)
+              ->setData(DAConverter::DAChannel::CH_1, vv / 1 + 2048)
+              ->setData(DAConverter::DAChannel::CH_2, vw / 1 + 2048)
+              ->commit();
+              */
 
 //    dachandler->setData(DAConverter::DAChannel::CH_0, iu * 400)
 //              ->setData(DAConverter::DAChannel::CH_1, iv * 400)
 //              ->setData(DAConverter::DAChannel::CH_2, iw * 400)
 //              ->commit();
+
+    MTU0.TSR.BIT.TGFA = 0;
 }
 
 #ifdef __cplusplus
