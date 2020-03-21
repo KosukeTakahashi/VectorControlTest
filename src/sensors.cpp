@@ -10,9 +10,14 @@
 
 using namespace Sensors;
 
-SensorsWrapper::SensorsWrapper(void) {}
+SensorsWrapper::SensorsWrapper(void) {
+    this->accelAdjuster = 0;
+    this->iUAdjuster = 0;
+    this->iVAdjuster = 0;
+    this->iWAdjuster = 0;
+}
 
-void SensorsWrapper::setup(void) {
+void SensorsWrapper::setup(int samplingCount) {
     PORTA.DDR.BYTE = 0x00;
     PORTB.DDR.BYTE &= 0xF0;
     PORTA.ICR.BYTE = 0x3F;
@@ -69,6 +74,33 @@ void SensorsWrapper::setup(void) {
     S12AD1.ADCER.BIT.ADRFMT = 0;    // AD変換データを右詰めで格納
     S12AD1.ADSTRGR.BIT.ADSTRS0 = 1; // MTU0.TCNTとMTU0.TGRAとのコンペアマッチでAD変換開始
     S12AD.ADCMPMD0.WORD = 0x0000;   // コンパレータを使用しない
+
+    for (int i = 0; i < samplingCount; i++) {
+        S12AD0.ADCSR.BIT.ADST = 1;
+        while (S12AD0.ADCSR.BIT.ADST) {
+        }
+
+        this->accelAdjuster += S12AD0.ADDR1;
+    }
+    this->accelAdjuster /= samplingCount;
+    this->accelAdjuster -= 2048;
+
+    for (int i = 0; i < samplingCount; i++) {
+        S12AD1.ADCSR.BIT.ADST = 1;
+        while (S12AD1.ADCSR.BIT.ADST) {
+        }
+
+        this->iUAdjuster += S12AD1.ADDR2;
+        this->iVAdjuster += S12AD1.ADDR1;
+        this->iWAdjuster += S12AD1.ADDR0A;
+    }
+    this->iUAdjuster /= samplingCount;
+    this->iVAdjuster /= samplingCount;
+    this->iWAdjuster /= samplingCount;
+
+    this->iUAdjuster -= 2048;
+    this->iVAdjuster -= 2048;
+    this->iWAdjuster -= 2048;
 }
 
 int SensorsWrapper::readResolver(void) {
@@ -76,9 +108,9 @@ int SensorsWrapper::readResolver(void) {
 }
 
 void SensorsWrapper::readCurrent(int *u, int *v, int *w) {
-    *u = S12AD1.ADDR2;
-    *v = S12AD1.ADDR1;
-    *w = S12AD1.ADDR0A;
+    *u = S12AD1.ADDR2 - this->iUAdjuster;
+    *v = S12AD1.ADDR1 - this->iVAdjuster;
+    *w = S12AD1.ADDR0A - this->iWAdjuster;
 }
 
 int SensorsWrapper::readAccel(void) {

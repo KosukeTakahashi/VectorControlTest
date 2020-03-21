@@ -1,4 +1,4 @@
-Renesas Optimizing Linker (W3.01.00 )             21-Mar-2020 01:08:05
+Renesas Optimizing Linker (W3.01.00 )             21-Mar-2020 19:26:52
 
 *** Options ***
 
@@ -45,7 +45,7 @@ R_2
 B
                                   00000404  0000081b       418   4
 R
-                                  0000081c  0000088b        70   4
+                                  0000081c  0000087f        64   4
 PResetPRG
                                   fffc0000  fffc0037        38   4
 C_1
@@ -65,22 +65,22 @@ C$VECT
 C$VTBL
                                   fffc04f8  fffc04f8         0   1
 D
-                                  fffc04f8  fffc0567        70   4
+                                  fffc04f8  fffc055b        64   4
 D_1
-                                  fffc0568  fffc0568         0   1
+                                  fffc055c  fffc055c         0   1
 D_2
-                                  fffc0568  fffc0568         0   1
+                                  fffc055c  fffc055c         0   1
 W
-                                  fffc0568  fffc0568         0   1
+                                  fffc055c  fffc055c         0   1
 W_1
-                                  fffc0568  fffc0568         0   1
+                                  fffc055c  fffc055c         0   1
 W_2
-                                  fffc0568  fffc0568         0   1
+                                  fffc055c  fffc055c         0   1
 L
-                                  fffc0568  fffc0568         0   1
+                                  fffc055c  fffc055c         0   1
 PIntPRG
-                                  fffc0568  fffc064f        e8   4
+                                  fffc055c  fffc0643        e8   4
 P
-                                  fffc0650  fffc149f       e50   1
+                                  fffc0644  fffc154b       f08   1
 FIXEDVECT
                                   ffffff80  ffffffff        80   4

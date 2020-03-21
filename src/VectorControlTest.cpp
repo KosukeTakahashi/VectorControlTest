@@ -35,9 +35,6 @@ VectorControl *vecCtrl;
 DAConverter::DACHandler *dachandler;
 
 int globalCounter = 0;
-int initialIU = 0;
-int initialIV = 0;
-int initialIW = 0;
 
 void main(void)
 {
@@ -48,12 +45,12 @@ void main(void)
     IEN(S12AD1, S12ADI1) = 1;
     IPR(S12AD1, S12ADI1) = 3;
 
-    cpwm = new CPWM::CPWMWrapper(5000, 100);
+    cpwm = new CPWM::CPWMWrapper(5000, 100); // dead time = 4.0 [us]
     sensors = new Sensors::SensorsWrapper();
     vecCtrl = new VectorControl(15.0, 0.0);
 
     cpwm->setup();
-    sensors->setup();
+    sensors->setup(1000);
     dachandler->setup();
 
     // MTU0 setup
@@ -70,28 +67,9 @@ void main(void)
 
     dachandler->setData(DAConverter::DAChannel::CH_0, 0)
               ->setData(DAConverter::DAChannel::CH_1, 0)
-              ->setData(DAConverter::DAChannel::CH_2, 4096)
+              ->setData(DAConverter::DAChannel::CH_2, 0)
               ->setData(DAConverter::DAChannel::CH_3, 0)
               ->commit();
-
-    int tU = 0;
-    int tV = 0;
-    int tW = 0;
-
-    for (int i = 0; i < 1000; i++) {
-        sensors->readCurrent(&tU, &tV, &tW);
-        initialIU += tU;
-        initialIV += tV;
-        initialIW += tW;
-    }
-
-    initialIU /= 1000;
-    initialIV /= 1000;
-    initialIW /= 1000;
-
-    initialIU -= 2048;
-    initialIV -= 2048;
-    initialIW -= 2048;
 
     while (1) {
     }
@@ -147,57 +125,47 @@ void int_s12adi1(void) {
     while (twoPi < theta)
         theta -= twoPi;
 
-//    float k = accel / 4096.0;
-//    float k = 1.0;
-//    float dutyU = (sinf(theta) * k + 1.0) / 2.0;
-//    float dutyV = (sinf(theta - phi) * k + 1.0) / 2.0;
-//    float dutyW = (sinf(theta + phi) * k + 1.0) / 2.0;
-
-//    cpwm->setDutyU(dutyU);
-//    cpwm->setDutyV(dutyV);
-//    cpwm->setDutyW(dutyW);
-
     int iu;
     int iv;
     int iw;
 
     sensors->readCurrent(&iu, &iv, &iw);
-    iu -= initialIU;
-    iv -= initialIV;
-    iw -= initialIW;
     iu -= 2048;
     iv -= 2048;
     iw -= 2048;
 
-    float a = iu - (iv / 2.0) - (iw / 2.0);
-    float b = (iv * sqrt3_2) - (iw * sqrt3_2);
-    float id = (a * cosf(theta)) + (b * sinf(theta));
-    float iq = (-a * sinf(theta)) + (b * cosf(theta));
+    const float gainP = 0.2;
+
+    float ia = iu - (iv / 2.0) - (iw / 2.0);
+    float ib = (iv * sqrt3_2) - (iw * sqrt3_2);
+    float id = (ia * cosf(theta)) + (ib * sinf(theta));
+    float iq = (-ia * sinf(theta)) + (ib * cosf(theta));
     float idRef = 0.0;
-    float iqRef = accel / 4096.0 * 100.0;
+    float iqRef = accel / 4096.0 * 800.0;
     float errorId = idRef - id;
     float errorIq = iqRef - iq;
 
-//    float vd = 15.0 * errorId;
-//    float vq = 15.0 * errorIq;
-    float vd = 0.0;
-    float vq = accel / 4096.0 * 410.0;
+    float vd = gainP * errorId;
+    float vq = gainP * errorIq;
+//    float vd = 0.0;
+//    float vq = accel / 4096.0 * 410.0;
     float va = vd * cosf(theta) - vq * sinf(theta);
     float vb = vd * sinf(theta) + vq * cosf(theta);
     float vu = va * 2.0 / 3.0;
     float vv = (-va / 3.0) + (vb / sqrt3);
     float vw = (-va / 3.0) - (vb / sqrt3);
 
-    cpwm->setDutyU(vu / 410.0);
-    cpwm->setDutyV(vv / 410.0);
-    cpwm->setDutyW(vw / 410.0);
+    cpwm->setDutyU(vu / 400.0);
+    cpwm->setDutyV(vv / 400.0);
+    cpwm->setDutyW(vw / 400.0);
 //    cpwm->setDutyU(0.5);
 //    cpwm->setDutyV(0.75);
 //    cpwm->setDutyW(-0.5);
 
-    dachandler->setData(DAConverter::DAChannel::CH_0, MTU3.TGRB)
-              ->setData(DAConverter::DAChannel::CH_1, MTU4.TGRA)
-              ->setData(DAConverter::DAChannel::CH_2, MTU4.TGRB)
+    dachandler->setData(DAConverter::DAChannel::CH_0, vu * 4 + 2048)
+              ->setData(DAConverter::DAChannel::CH_1, errorId * 4 + 2048)
+              ->setData(DAConverter::DAChannel::CH_2, errorIq * 4 + 2048)
+              ->setData(DAConverter::DAChannel::CH_3, MTU3.TGRD)
               ->commit();
 
     /*
