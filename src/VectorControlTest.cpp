@@ -107,7 +107,7 @@ void int_s12adi1(void) {
      * 正弦波駆動 *
      *************/
 
-    const float phi = 2.09439510239;
+//    const float phi = 2.09439510239;
 //    const float pi = 3.14159265359;
     const float twoPi = 6.28318530718;
     const float sqrt3 = 1.73205080756;
@@ -120,7 +120,8 @@ void int_s12adi1(void) {
 
     resolver /= 4;
     float theta = resolver * twoPi / 128.0;
-    theta += 550 * twoPi / 4096.0;
+//    theta += 391.17 * twoPi / 4096.0;
+    theta += 0.09550048828 * twoPi; // = 391.17 / 4096.0 * twoPi
 
     while (twoPi < theta)
         theta -= twoPi;
@@ -134,7 +135,7 @@ void int_s12adi1(void) {
     iv -= 2048;
     iw -= 2048;
 
-    const float gainP = 0.2;
+    const float gainP = 0.3;
 
     float ia = iu - (iv / 2.0) - (iw / 2.0);
     float ib = (iv * sqrt3_2) - (iw * sqrt3_2);
@@ -142,6 +143,7 @@ void int_s12adi1(void) {
     float iq = (-ia * sinf(theta)) + (ib * cosf(theta));
     float idRef = 0.0;
     float iqRef = accel / 4096.0 * 800.0;
+//    float idRef = 600.0;
     float errorId = idRef - id;
     float errorIq = iqRef - iq;
 
@@ -158,13 +160,10 @@ void int_s12adi1(void) {
     cpwm->setDutyU(vu / 400.0);
     cpwm->setDutyV(vv / 400.0);
     cpwm->setDutyW(vw / 400.0);
-//    cpwm->setDutyU(0.5);
-//    cpwm->setDutyV(0.75);
-//    cpwm->setDutyW(-0.5);
 
     dachandler->setData(DAConverter::DAChannel::CH_0, vu * 4 + 2048)
-              ->setData(DAConverter::DAChannel::CH_1, errorId * 4 + 2048)
-              ->setData(DAConverter::DAChannel::CH_2, errorIq * 4 + 2048)
+              ->setData(DAConverter::DAChannel::CH_1, errorId * 1 + 2048)
+              ->setData(DAConverter::DAChannel::CH_2, errorIq * 1 + 2048)
               ->setData(DAConverter::DAChannel::CH_3, MTU3.TGRD)
               ->commit();
 
